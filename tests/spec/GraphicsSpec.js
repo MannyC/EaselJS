@@ -203,6 +203,12 @@ describe("Graphics", function () {
 		this.compareBaseLine("assets/lineTo.png", done, expect);
 	});
 
+	it("moveTo() with commited method before dirty method", function (done) {
+		this.g.moveTo(5, 35).beginStroke(this.sColor).lineTo(110, 75);
+
+		this.compareBaseLine("assets/lineTo.png", done, expect);
+	});
+
 	it("setStrokeStyle()", function (done) {
 		this.g.setStrokeStyle(25, 1, 1, 0, true).beginStroke(this.sColor).rect(30, 30, 100, 100);
 

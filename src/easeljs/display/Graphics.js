@@ -200,6 +200,14 @@ this.createjs = this.createjs||{};
 		 * @type {Array}
 		 **/
 		this._activeInstructions = [];
+
+		/**
+		 * The number of active instruction last copied to the _instructions array by the _updateInstructions method
+		 * @property _copiedActiveInstructions
+		 * @protected
+		 * @type {Number}
+		 **/
+		this._copiedActiveInstructions = 0;
 	
 		/**
 		 * This indicates that there have been changes to the activeInstruction list since the last updateInstructions call.
@@ -1354,6 +1362,7 @@ this.createjs = this.createjs||{};
 			instr.length = commitIndex; // remove old, uncommitted commands
 			instr.push(Graphics.beginCmd);
 			instr.push.apply(instr, active);
+			this._copiedActiveInstructions = active.length;
 			
 			if (this._fill) { instr.push(this._fill); }
 			if (this._stroke && this._strokeStyle) { instr.push(this._strokeStyle); }
@@ -1363,7 +1372,18 @@ this.createjs = this.createjs||{};
 		}
 		
 		if (commit) {
-			active.length = 0;
+			if(active.length > this._copiedActiveInstructions){
+				// move the uncopied instructions at the end of the active array to the begining
+				for(var i = 0, n = this._copiedActiveInstructions, l = active.length; n < l; i++, n++){
+					active[i] = active[n];
+				}
+				active.length = i;
+			}
+			else{
+				active.length = 0;
+			}
+
+			this._copiedActiveInstructions = 0;
 			this._commitIndex = instr.length;
 		}
 	};
