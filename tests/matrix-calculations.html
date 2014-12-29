@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+function init(){
+
+
+	var ctx = canvas.getContext('2d');
+
+	var outputString = '\n';
+
+	function output(name, matrix){
+		outputString += "this." + name + " = new createjs.Matrix2D(" + matrix.join(',') + ");\n";
+	}
+
+	function outputObj(name, o){
+		outputString += "this." + name + " = " + JSON.stringify(o) + ";\n";
+	}
+
+	function printOutput(){
+		console.log(outputString);
+	}
+
+	function rad(degrees){
+		return degrees * Math.PI / 180;
+	}
+
+	function skewMatrix(skewX, skewY){
+		return [1, Math.tan(rad(skewY)), Math.tan(rad(skewX)), 1, 0, 0];
+	}
+
+	var p1 = {x: 13, y: 14};
+	var m1 = [1,2,3,4,5,6];
+	var m2 = [7,8,9,10,11,12];	
+	var m3 = [1,0,0,1,p1.x,p1.y];
+	var identity = ctx.mozCurrentTransform;
+
+	output("m1", m1);
+	output("m1equal", m1);
+
+	output("identity", identity);
+
+
+	ctx.mozCurrentTransform = m1;
+	output("m1inverse", ctx.mozCurrentTransformInverse);
+
+	output("m2", m2);
+	
+	ctx.mozCurrentTransform = m1;
+	ctx.transform(m2[0],m2[1],m2[2],m2[3],m2[4],m2[5]);
+	output("m1m2", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m2;
+	ctx.transform(m1[0],m1[1],m1[2],m1[3],m1[4],m1[5]);
+	output("m2m1", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.scale(p1.x, p1.y);
+	output("m1scale_p1", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.translate(p1.x, p1.y);
+	output("m1translate_p1", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.transform(m3[0],m3[1],m3[2],m3[3],m3[4],m3[5]);
+	outputObj("m1transform_p1", {x: ctx.mozCurrentTransform[4], y:ctx.mozCurrentTransform[5]} );
+
+	ctx.mozCurrentTransform = m1;
+	ctx.rotate(30 * Math.PI / 180 );
+	output("m1rotate_30", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.rotate(90 * Math.PI / 180 );
+	output("m1rotate_90", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.rotate(-90 * Math.PI / 180 );
+	output("m1rotate_neg90", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;
+	ctx.rotate(-170 * Math.PI / 180 );
+	output("m1rotate_neg170", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;	
+	ctx.transform.apply(ctx, skewMatrix(-20, 20));
+	output("m1skew_neg20_20", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;	
+	ctx.transform.apply(ctx, skewMatrix(20, -20));
+	output("m1skew_20_neg20", ctx.mozCurrentTransform);
+
+	ctx.mozCurrentTransform = m1;	
+	ctx.transform.apply(ctx, skewMatrix(70, 70));
+	output("m1skew_70_70", ctx.mozCurrentTransform);
+
+	ctx.setTransform.apply(ctx, identity);
+	ctx.translate(11,15);	
+	ctx.scale(20, 50);
+	output("identitytransform_11_15_20_50_0_0_0", ctx.mozCurrentTransform);
+
+	ctx.setTransform.apply(ctx, identity);
+	ctx.rotate(rad(45));
+	output("identitytransform_0_0_1_1_45_0_0", ctx.mozCurrentTransform);
+
+	ctx.setTransform.apply(ctx, identity);
+	ctx.rotate(rad(45));
+	ctx.scale(20, 50);
+	output("identitytransform_0_0_20_50_45_0_0", ctx.mozCurrentTransform);
+
+	ctx.setTransform.apply(ctx, identity);
+	ctx.translate(20,80);	
+	ctx.rotate(rad(55));
+	ctx.scale(20, 50);
+	output("identitytransform_20_80_20_50_55_0_0", ctx.mozCurrentTransform);
+
+	ctx.setTransform.apply(ctx, identity);
+	ctx.translate(5,66);	
+	ctx.transform.apply(ctx,skewMatrix(-20, 20));
+	ctx.rotate(rad(15));
+	ctx.scale(2, 90);
+	output("identitytransform_5_66_2_90_15_neg20_20", ctx.mozCurrentTransform);
+
+	outputObj("p1", p1);
+
+	printOutput();
+
+}
+</script>
+</head>
+
+<body onload="init()">
+<div>See console.  Only Firefox is supported.</div>
+<div><canvas id="canvas" width="500" height="500"></canvas></div>
+</body>
+</html>

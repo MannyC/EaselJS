@@ -51,15 +51,34 @@ beforeEach(function (done) {
 	var customMatchers = {
 		toBeInRange: function(util, customEqualityTesters) {
 			return {
-				compare: function(actual, excpected, range) {
+				compare: function(actual, expected, range) {
 					var result = {};
 					range = range || 0;
 
-					if (actual <= (excpected + range) && actual >= (excpected - range)) {
+					if (actual <= (expected + range) && actual >= (expected - range)) {
 						result.pass = true;
 					} else {
 						result.pass = false;
 					}
+					return result;
+				}
+			};
+		},
+		toBeCloseMatrix: function(util, customEqualityTesters){
+			return {
+				compare: function(actual, expected) {
+					function floatCompare(n1, n2, tolerance) {
+						var tol = typeof tolerance === 'undefined' ? 0.00001 : tolerance;
+						return Math.abs(n1-n2) < tol;
+					}
+					var result = {
+						pass: floatCompare(actual.a, expected.a) &&
+							floatCompare(actual.b, expected.b) &&
+							floatCompare(actual.c, expected.c) &&
+							floatCompare(actual.d, expected.d) &&
+							floatCompare(actual.tx, expected.tx) &&
+							floatCompare(actual.ty, expected.ty)
+					};
 					return result;
 				}
 			};
