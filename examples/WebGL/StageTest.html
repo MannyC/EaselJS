@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<base href="../"/>
+	<title>WebGL sprite test</title>
+
+	<link href="../_assets/css/shared.css" rel="stylesheet" type="text/css"/>
+	<link href="../_assets/css/examples.css" rel="stylesheet" type="text/css"/>
+	<script src="../_assets/js/examples.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/URI.js/1.11.2/URI.min.js"> </script>
+
+</head>
+
+<body onload="init();">
+<p>
+	<span style="margin: 10px">WebGL: <span id="webGL" style="font-weight:bold; border:1px solid black"> ? </span> </span>
+	<span style="margin: 10px">Framerate: <span id="framerate" style="font-weight:bold; border:1px solid black"> ? </span></span>
+	<span style="margin: 10px">Runners: <span id="num-runners" style="font-weight:bold; border:1px solid black"> ? </span><span style="margin: 10px">
+</p>
+<p>
+	<span style="margin: 10px">Append <code>?c2d</code> to the url to disable WebGL or <code>r=X</code> to change the max runners to X.</span>
+</p>
+<canvas id="testCanvas" width="680" height="300"
+		style="background: #66AA99"></canvas>
+
+<script src="../lib/easeljs-NEXT.combined.js"></script>
+<!-- We also provide hosted minified versions of all CreateJS libraries.
+  http://code.createjs.com -->
+
+<!-- WebGL specific classes -->
+<script src="../src/easeljs/display/SpriteContainer.js"></script>
+<script src="../src/easeljs/display/SpriteStage.js"></script>
+
+<script src="../_assets/libs/preloadjs-NEXT.min.js"></script>
+
+<script id="editable">
+	var stage;
+	var sprites = [];
+	var runners = [];
+	var maxRunners = 10 ;
+	var numRunners = 0;
+	var queue;
+	
+	function init() {
+		var uri = URI.parseQuery( new URI(location.href).query() );
+		if(uri.hasOwnProperty('c2d')){
+			stage = new createjs.Stage("testCanvas");
+		}
+		else {
+			stage = new createjs.SpriteStage("testCanvas");
+		}
+
+		maxRunners = uri.r || maxRunners;
+
+		document.getElementById("webGL").textContent = !!stage.isWebGL;
+
+		queue = new createjs.LoadQueue();
+		queue.on("complete", handleLoad, this);
+		var manifest = [];
+		for(var i=0; i < maxRunners; i++){
+			manifest.push({id: "runner" + i, src: "../_assets/art/spritesheet_grant.png?i=" + i, type: "image"});
+		}
+		queue.loadManifest(manifest, true);
+	}
+
+	function handleLoad(evt) {
+		for(var i=0; i < maxRunners; i++){
+			var ss = new createjs.SpriteSheet({
+				framerate: 60,
+				"images": [queue.getResult("runner" + i)],
+				"frames": {"regX": 82, "height": 292, "count": 64, "regY": 292, "width": 165},
+				"animations": {
+					"run": [0, 25, "run"],
+					"jump": [26, 63, "run"]
+				}
+			});
+			sprites.push( new createjs.Sprite(ss, "run") );
+		}
+
+		createjs.Ticker.timingMode = createjs.Ticker.RAF;
+
+		createjs.Ticker.on("tick", tick, this);
+	}
+
+	var t = 0;
+
+	function tick(evt) {
+
+		if (numRunners < maxRunners && Math.random() < 0.3) {
+			addRunner();
+		}
+
+		if(++t % 60 === 0){
+			document.getElementById("framerate").textContent = createjs.Ticker.getMeasuredFPS() |0;
+		}
+
+		for (var i = 0; i < numRunners; i++) {
+
+			var runner = runners[i];
+			runner.x += runner.velX;
+			if (runner.x > 720) {
+				resetRunner(runner);
+			}
+		}
+		stage.update(evt);
+	}
+
+	function addRunner() {
+		
+		var runner = sprites[numRunners];
+		numRunners++;
+		document.getElementById("num-runners").textContent = numRunners;
+		runners.push(runner);
+		resetRunner(runner);
+	}
+
+	function resetRunner(runner) {
+		runner.x = -100;
+		runner.y = Math.random() * 90 + 200 | 0;
+
+		stage.removeChild(runner);
+
+		var len = stage.getNumChildren();
+
+		// very simple depth sorting. Not exact, but good enough for this example.
+		for (var i = 0; i < len; i++) {
+			if (runner.y <= stage.getChildAt(i).y) {
+				stage.addChildAt(runner, i);
+				break;
+			}
+		}
+		if (i === len) {
+			stage.addChild(runner);
+		}
+
+		var size = Math.random() * Math.random() * Math.random();
+		runner.velX = 6 - size * 4;
+		runner.framerate = runner.velX * 8;
+		runner.scaleX = runner.scaleY = size + 0.5;
+	}
+
+	
+</script>
+
+</body>
+</html>
